@@ -11,16 +11,12 @@ jobs:
     steps:
       - name: Enable deb-src repositories
         run: |
-          # Uncomment any existing deb-src lines in /etc/apt/sources.list
-          sudo sed -i 's/^#\s*deb-src/deb-src/' /etc/apt/sources.list
-          # If no noble deb-src lines exist, append them explicitly
-          if ! grep -R "deb-src .* noble main" /etc/apt/sources.list; then
-            sudo tee -a /etc/apt/sources.list <<EOF
-deb-src http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
-deb-src http://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse
-deb-src http://archive.ubuntu.com/ubuntu noble-security main restricted universe multiverse
-EOF
-          fi
+          # Append the necessary deb-src lines to /etc/apt/sources.list
+          sudo tee -a /etc/apt/sources.list <<EOF
+          deb-src http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
+          deb-src http://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse
+          deb-src http://archive.ubuntu.com/ubuntu noble-security main restricted universe multiverse
+          EOF
           sudo apt-get update
 
       - name: Install build dependencies
