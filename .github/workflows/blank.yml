@@ -1,0 +1,56 @@
+# File: .github/workflows/build-patched-btusb.yml
+name: Build Patched btusb Module
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-btusb:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            build-essential \
+            libncurses-dev \
+            bison \
+            flex \
+            libssl-dev \
+            libelf-dev \
+            fakeroot \
+            dpkg-dev \
+            wget \
+            patch \
+            linux-headers-$(uname -r)
+
+      - name: Download Ubuntu kernel source
+        run: |
+          mkdir -p ~/kernel-build
+          cd ~/kernel-build
+          apt-get source linux-image-$(uname -r)
+
+      - name: Apply Bluetooth btusb quirk patch
+        run: |
+          cd ~/kernel-build/linux-*/
+          wget https://patchwork.kernel.org/patch/53ccc7377341b64ff3fbdde3df28cbd14f245340.camel@nuclearsunshine.com/raw/ \
+            -O add-0x3608-quirk-to-btusb.patch
+          patch -p1 < add-0x3608-quirk-to-btusb.patch
+
+      - name: Prepare kernel config
+        run: |
+          cd ~/kernel-build/linux-*/
+          cp /boot/config-$(uname -r) .config
+          yes "" | make olddefconfig
+
+      - name: Build patched btusb module
+        run: |
+          cd ~/kernel-build/linux-*/
+          make -j$(nproc) M=drivers/bluetooth/btusb
+
+      - name: Upload btusb.ko artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: btusb-module
+          path: ~/kernel-build/linux-*/drivers/bluetooth/btusb/btusb.ko
