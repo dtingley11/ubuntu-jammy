@@ -50,7 +50,7 @@ jobs:
           make -j$(nproc) M=drivers/bluetooth/btusb
 
       - name: Upload btusb.ko artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: btusb-module
           path: ~/kernel-build/linux-*/drivers/bluetooth/btusb/btusb.ko
